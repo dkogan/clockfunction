@@ -171,7 +171,7 @@ def record_trace(fullcmd):
         call( ('sudo', 'chmod', 'a+r', "perf.data"))
 
 def analyze_trace(this_script):
-        call( ('perf', 'script', '-s', this_script), pass_output=True )
+        call( (perf, 'script', '-s', this_script), pass_output=True )
 
 if __name__ == '__main__':
         # When I run this via 'perf script' I STILL get here, even though I
