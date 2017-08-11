@@ -208,7 +208,7 @@ Example:
 The table was re-spaced for readability. So we see that the main perl
 application took 0.66 seconds. And Perl_pp_rand was called 100001 times, taking
 5.23us each time, on average, for a total of 0.523 seconds. A lower-level
-Perl_drand48_r function is about 1/3 of the time of Perl_pp_rand. If one cared
+Perl_drand48_r function took about 1/3 of the time of Perl_pp_rand. If one cared
 about this detail of perl, this would be very interesting to know. And we found
 it out without any compile-time instrumentation of our binary.
 
