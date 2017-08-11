@@ -196,6 +196,8 @@ function; must be an absolute path.
 
 Example:
 
+  $ ./clockfunction.py '*rand*'@/usr/bin/perl perl_run@/usr/bin/perl perl -e 'for $i (0..100000) { $s = rand(); }'
+
   # function mean min max stdev Ncalls
   ## All timings in seconds
   Perl_drand48_init_r 7.55896326154e-06 7.55896326154e-06 7.55896326154e-06 0.0               1
