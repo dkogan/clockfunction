@@ -136,6 +136,7 @@ def create_probes(funcslibs):
         # demangled names, but you get an error if you try to use them. Upstream
         # knows about the bug, but hasn't yet fixed it
         for f_pattern,lib in funcslibs:
+                lib = os.path.expanduser(lib)
                 funcs = get_functions_from_pattern(f_pattern, lib)
                 for f in funcs:
                         call( ('sudo', perf, 'probe', '-x', lib,
