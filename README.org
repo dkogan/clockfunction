@@ -1,0 +1,69 @@
+Profiling tools generally answer the question *where's all my time going?*, and
+they answer this question by periodically sampling a running executable to see
+what it's doing at that point in time. When many samples are collected, they can
+be analyzed and tallied. Execution hotspots then show up as a large sample
+count: the application spent more time executing the hotspots. As expected, a
+higher sampling rate yields more precise results at the cost of a higher
+instrumentation overhead.
+
+Recently I needed to answer a slightly diffent question: *how quickly does THIS
+SPECIFIC function run?*. A sampling profiler is both too much and too little
+here. Too much because I don't need to sample when the function of interest is
+not running, and too little because a very high sampling resolution may be
+necessary to report the timings with sufficient precision.
+
+I looked around, and didn't see any available tools that solved this problem.
+The [[https://perf.wiki.kernel.org/][=perf=]] tool from the linux kernel does 99% of what is needed to construct
+such a tool, so I wrote a simple tool that uses =perf= to give me the facilities
+I need: =clockfunction=.
+
+=perf= is able to probe executables at /entry/ points to a function and at
+/exit/ points of a function. Probing the entry is trivial, since the addresses
+can be looked up in the symbol table or in the debug symbols. Probing the exit
+is /not/ trivial, since multiple =ret= statements could be present. One could
+either do some minor static analysis to find the =ret= statements, or one could
+look at the return address upon entry, and then dynamically place a probe there.
+And if there're any non-local exits, these would both break. I'm not 100% sure,
+but I suspect that =perf= does neither, but instead uses some special hardware
+to do this. In any case, I don't care: =perf= allows me to probe function
+returns somehow, and that's all I care about.
+
+After placing the probes, I run the executable being evaluated while =perf= is
+recording all probe crossings. When the executable exits, the probe log can be
+analyzed to extract the timing information.
+
+The =clockfunction= tool automates this. Multiple functions can be sampled, with
+each one specified as a =func@lib= string (ltrace-style). =func= is the name of
+the function we care about. This could be a shell pattern to pick out multiple
+functions. =lib= is the ELF library or executable that contains this function;
+must be an absolute path. An example:
+
+#+BEGIN_EXAMPLE
+$ ./clockfunction.py '*rand*'@/usr/bin/perl perl_run@/usr/bin/perl perl -e 'for $i (0..100000) { $s = rand(); }'
+
+# function mean min max stdev Ncalls
+## All timings in seconds
+Perl_drand48_init_r 7.55896326154e-06 7.55896326154e-06 7.55896326154e-06 0.0               1
+Perl_drand48_r      1.95271501819e-06 1.76404137164e-06 3.67719912902e-05 4.0105865074e-07  100001
+Perl_pp_rand        5.23026800056e-06 4.78199217469e-06 0.000326015986502 1.71576428687e-06 100001
+perl_run            0.662568764063    0.662568764063    0.662568764063    0.0               1
+#+END_EXAMPLE
+
+The table was re-spaced for readability. We see that the main perl application
+took 0.66 seconds. And =Perl_pp_rand= was called 100001 times, taking 5.23us
+each time, on average, for a total of 0.523 seconds. A lower-level
+=Perl_drand48_r= function took about 1/3 of the time of =Perl_pp_rand=. If one
+cared about this detail of perl, this would be very interesting to know. And we
+found it out without any compile-time instrumentation of our binary and without
+even bothering to find out what the =*rand*= functions area called.
+
+Recursive or parallel invocations are supported so far as the mean and Ncalls
+will be reported correctly. The min, max and stdev of the timings will not be
+available, however.
+
+This tool is a quick hack. This tool calls =sudo= all over the place, which is
+ugly. It's also probably not very robust to errors, and probably has other
+issues. I'll probably clean things up as I go, but it works well already, and
+it's done-enough for my present purposes.
+
+License: released into the public domain; I'm giving up all copyright.
