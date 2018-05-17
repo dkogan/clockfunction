@@ -61,9 +61,34 @@ Recursive or parallel invocations are supported so far as the mean and Ncalls
 will be reported correctly. The min, max and stdev of the timings will not be
 available, however.
 
-This tool is a quick hack. This tool calls =sudo= all over the place, which is
-ugly. It's also probably not very robust to errors, and probably has other
-issues. I'll probably clean things up as I go, but it works well already, and
-it's done-enough for my present purposes.
 
-License: released into the public domain; I'm giving up all copyright.
+CAVEATS
+
+This tool is a quick hack, and all the actual work is done by 'perf'. This tool
+calls 'sudo' all over the place, which is ugly.
+
+A relatively recent 'perf' is required. The devs have been tinkering with the
+semantics of 'perf probe -F'. The following should produce reasonable output:
+
+  perf probe -x `which python` -F 'Py*'
+
+(I.e. it should print out a long list of instrumentable functions in the python
+executable that start with 'Py'). Older versions of the 'perf' tool will barf
+instead. Note that 'perf' is a userspace tool that lives in the linux kernel
+source tree. And it doesn't directly depend on specific kernel versions.
+Grabbing a very recent kernel tree and rebuilding JUST 'perf' usually works. And
+you don't need to rebuild the kernel and reboot. Usually.
+
+When instrumenting C++ functions you generally need to use the mangled symbol
+names. At this time 'perf' has partial support for demangled names, but it's not
+complete enough to work fully ('perf probe -F' can report demangled names, but
+you can't insert probes with ':' in their names since ':' is already taken in
+'perf probe' syntax). So I use 'perf probe --no-demangle', which again requires
+a relatively recent 'perf'. If you aren't looking at C++, but your perf is too
+old to have --no-demangle, you'll get needless barfing; take out the
+'--no-demangle' in that case.
+
+
+LICENSE
+
+released into the public domain; I'm giving up all copyright.
