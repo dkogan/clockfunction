@@ -1,5 +1,61 @@
 #!/usr/bin/python
 
+r"""This is a simple tool to run an application under perf to measure the runtime
+of given functions.
+
+This program runs an arbitrary application with arbitrary args (cmd arg0 arg1
+arg2 ...) with some (very light) instrumentation. This instrumentation traces
+entries and exits to a given set of functions, and measures the elapsed time
+spent. When the application exits, basic statistics are printed to let the user
+know how fast or slow the queried functions are.
+
+Each function is specified as a 'func@lib' string (ltrace-style). 'func' is the
+name of the function we care about. This could be a shell pattern to pick out
+multiple functions. 'lib' is the ELF library or executable that contains this
+function; must be an absolute path.
+
+Example:
+
+  $ ./clockfunction.py '*rand*'@/usr/bin/perl perl_run@/usr/bin/perl perl -e 'for $i (0..100000) { $s = rand(); }'
+
+  # function mean min max stdev Ncalls
+  ## All timings in seconds
+  Perl_drand48_init_r 7.55896326154e-06 7.55896326154e-06 7.55896326154e-06 0.0               1
+  Perl_drand48_r      1.95271501819e-06 1.76404137164e-06 3.67719912902e-05 4.0105865074e-07  100001
+  Perl_pp_rand        5.23026800056e-06 4.78199217469e-06 0.000326015986502 1.71576428687e-06 100001
+  perl_run            0.662568764063    0.662568764063    0.662568764063    0.0               1
+
+The table was re-spaced for readability. So we see that the main perl
+application took 0.66 seconds. And Perl_pp_rand was called 100001 times, taking
+5.23us each time, on average, for a total of 0.523 seconds. A lower-level
+Perl_drand48_r function took about 1/3 of the time of Perl_pp_rand. If one cared
+about this detail of perl, this would be very interesting to know. And we found
+it out without any compile-time instrumentation of our binary and without even
+bothering to find out what the rand functions area called.
+
+Recursive or parallel invocations are supported so far as the mean and Ncalls
+will be reported correctly. The min, max and stdev of the timings will not be
+available, however.
+
+CAVEATS
+
+This tool is a quick hack, and all the actual work is done by 'perf'. This tool
+calls 'sudo' all over the place, which is ugly.
+
+A relatively recent 'perf' is required. The devs have been tinkering with the
+semantics of 'perf probe -F'. The following should produce reasonable output:
+
+  perf probe -x `which python` -F 'Py*'
+
+(I.e. it should print out a long list of instrumentable functions in the python
+executable that start with 'Py'). Older versions of the 'perf' tool will barf
+instead. Note that 'perf' is a userspace tool that lives in the linux kernel
+source tree. And it doesn't directly depend on specific kernel versions.
+Grabbing a very recent kernel tree and rebuilding JUST 'perf' usually works. And
+you don't need to rebuild the kernel and reboot. Usually.
+"""
+
+
 import os
 import os.path
 import sys
@@ -7,9 +63,6 @@ import re
 import fnmatch
 import numpy as np
 import subprocess
-
-r'''This is a simple tool to run an application under perf to measure the runtime
-of given functions. Invoke with no arguments to get a useful usage message'''
 
 contexts = {}
 perf     = "perf"
@@ -174,6 +227,9 @@ def record_trace(fullcmd):
 def analyze_trace(this_script):
         call( (perf, 'script', '-s', this_script), pass_output=True )
 
+
+
+
 if __name__ == '__main__':
         # When I run this via 'perf script' I STILL get here, even though I
         # don't want to run any of this in that case. So I check the executable
@@ -183,46 +239,7 @@ if __name__ == '__main__':
         if not re.match( "perf(_.*)?$", os.path.basename( exe_link )):
 
                 usage = "Usage: {} func@lib [func@lib ...] cmd arg0 arg1 arg2 ...\n".format(sys.argv[0]) + \
-r"""
-This program runs an arbitrary application with arbitrary args (cmd arg0 arg1
-arg2 ...) with some (very light) instrumentation. This instrumentation traces
-entries and exits to a given set of functions, and measures the elapsed time
-spent. When the application exits, basic statistics are printed to let the user
-know how fast or slow the queried functions are.
-
-Each function is specified as a 'func@lib' string (ltrace-style). 'func' is the
-name of the function we care about. This could be a shell pattern to pick out
-multiple functions. 'lib' is the ELF library or executable that contains this
-function; must be an absolute path.
-
-Example:
-
-  $ ./clockfunction.py '*rand*'@/usr/bin/perl perl_run@/usr/bin/perl perl -e 'for $i (0..100000) { $s = rand(); }'
-
-  # function mean min max stdev Ncalls
-  ## All timings in seconds
-  Perl_drand48_init_r 7.55896326154e-06 7.55896326154e-06 7.55896326154e-06 0.0               1
-  Perl_drand48_r      1.95271501819e-06 1.76404137164e-06 3.67719912902e-05 4.0105865074e-07  100001
-  Perl_pp_rand        5.23026800056e-06 4.78199217469e-06 0.000326015986502 1.71576428687e-06 100001
-  perl_run            0.662568764063    0.662568764063    0.662568764063    0.0               1
-
-The table was re-spaced for readability. So we see that the main perl
-application took 0.66 seconds. And Perl_pp_rand was called 100001 times, taking
-5.23us each time, on average, for a total of 0.523 seconds. A lower-level
-Perl_drand48_r function took about 1/3 of the time of Perl_pp_rand. If one cared
-about this detail of perl, this would be very interesting to know. And we found
-it out without any compile-time instrumentation of our binary and without even
-bothering to find out what the rand functions area called.
-
-Recursive or parallel invocations are supported so far as the mean and Ncalls
-will be reported correctly. The min, max and stdev of the timings will not be
-available, however.
-
-This tool is a quick hack, and all the actual work is done by 'perf'. This tool
-calls 'sudo' all over the place, which is ugly.
-
-"""
-
+                        "\n" + __doc__
                 if len(sys.argv) < 3:
                         print usage
                         sys.exit(1)
