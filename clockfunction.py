@@ -53,6 +53,16 @@ instead. Note that 'perf' is a userspace tool that lives in the linux kernel
 source tree. And it doesn't directly depend on specific kernel versions.
 Grabbing a very recent kernel tree and rebuilding JUST 'perf' usually works. And
 you don't need to rebuild the kernel and reboot. Usually.
+
+When instrumenting C++ functions you generally need to use the mangled symbol
+names. At this time 'perf' has partial support for demangled names, but it's not
+complete enough to work fully ('perf probe -F' can report demangled names, but
+you can't insert probes with ':' in their names since ':' is already taken in
+'perf probe' syntax). So I use 'perf probe --no-demangle', which again requires
+a relatively recent 'perf'. If you aren't looking at C++, but your perf is too
+old to have --no-demangle, you'll get needless barfing; take out the
+'--no-demangle' in that case.
+
 """
 
 
@@ -164,7 +174,7 @@ def call( args, must_succeed=True, pass_output=False):
 
 def get_functions_from_pattern(f_pattern, lib):
         try:
-                out = subprocess.check_output( ('sudo', perf, 'probe', '-x', lib, '--funcs', f_pattern) )
+                out = subprocess.check_output( ('sudo', perf, 'probe', '-x', lib, '--no-demangle', '--funcs', f_pattern) )
         except:
                 raise Exception("Couldn't get the function list!")
 
