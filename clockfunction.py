@@ -203,10 +203,14 @@ def create_probes(funcslibs):
                 funcs = get_functions_from_pattern(f_pattern, lib)
                 print "## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, funcs)
                 for f in funcs:
-                        call( ('sudo', perf, 'probe', '-x', lib,
-                               '--no-demangle', '--add', f) )
-                        call( ('sudo', perf, 'probe', '-x', lib,
-                               '--no-demangle', '--add', "{f}_ret={f}%return".format(f=f)) )
+                        try:
+                                call( ('sudo', perf, 'probe', '-x', lib,
+                                       '--no-demangle', '--add', f) )
+                                call( ('sudo', perf, 'probe', '-x', lib,
+                                       '--no-demangle', '--add', "{f}_ret={f}%return".format(f=f)) )
+                        except:
+                                print ("## WARNING: Couldn't add probe for function '{}' in library '{}'.\n" + \
+                                       "## This possibly is OK. Continuing anyway").format(f, lib)
 
 def get_all_probes():
         # older perfs report an error even when this succeeds, and older perfs
