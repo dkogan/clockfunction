@@ -201,6 +201,7 @@ def create_probes(funcslibs):
         for f_pattern,lib in funcslibs:
                 lib = os.path.expanduser(lib)
                 funcs = get_functions_from_pattern(f_pattern, lib)
+                print "## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, funcs)
                 for f in funcs:
                         call( ('sudo', perf, 'probe', '-x', lib,
                                '--no-demangle', '--add', f) )
