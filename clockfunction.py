@@ -83,7 +83,7 @@ def preamble(event_name, fields):
         global contexts
 
         t_now = float(fields['common_s']) + float(fields['common_ns']) / 1e9
-        m     = re.match("probe_.*__(.*?)(_ret)?$", event_name)
+        m     = re.match("probe_.*__(.*?)(_ret)?(?:_[0-9]+)?$", event_name)
 
         if m:
                 func = m.group(1)
