@@ -220,11 +220,15 @@ def get_all_probes():
 
         probes = []
         for l in out.splitlines():
-                m = re.match('\s*(\S+)', l)
+                m = re.match('\s*(probe\S+)', l)
                 if m is None:
-                        raise Exception("Couldn't parse probe names from line '{}';\n" +
-                                        "Full output of 'perf probe --list': '{}'". \
-                                        format(l, out))
+                        # This can fail. Right now I see this
+                        #
+                        #   dima@fatty:~$ sudo perf_4.17 probe --list
+                        #   Failed to find debug information for address 2290
+                        #     probe_libmrcal:mrcal_distort (on mrcal_distort@dima/src_boats/mrcal/mrcal.c in /home/dima/src_boats/mrcal/libmrcal.so.0.0)
+                        # The "Failed" line should be ignored
+                        continue
                 probes.append(m.group(1))
         return probes
 
