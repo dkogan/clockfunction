@@ -62,7 +62,7 @@ will be reported correctly. The min, max and stdev of the timings will not be
 available, however.
 
 
-CAVEATS
+* Caveats
 
 This tool is a quick hack, and all the actual work is done by 'perf'. This tool
 calls 'sudo' all over the place, which is ugly.
@@ -70,7 +70,9 @@ calls 'sudo' all over the place, which is ugly.
 A relatively recent 'perf' is required. The devs have been tinkering with the
 semantics of 'perf probe -F'. The following should produce reasonable output:
 
+#+BEGIN_EXAMPLE
   perf probe -x `which python` -F 'Py*'
+#+END_EXAMPLE
 
 (I.e. it should print out a long list of instrumentable functions in the python
 executable that start with 'Py'). Older versions of the 'perf' tool will barf
@@ -89,6 +91,6 @@ old to have --no-demangle, you'll get needless barfing; take out the
 '--no-demangle' in that case.
 
 
-LICENSE
+* License
 
 released into the public domain; I'm giving up all copyright.
