@@ -120,7 +120,7 @@ def trace_unhandled(event_name, perf_context, fields):
 
                 if ctx['depth'] != 0:
                         if not ctx['uncertain_entry_exit']:
-                                sys.stderr.write("Function {} recursive or parallel: returned to NOT 0. Cannot compute min, max, stdev\n".format(func))
+                                sys.stderr.write("Function {} recursive or parallel. Cannot compute min, max, stdev\n".format(func))
                                 ctx['uncertain_entry_exit'] = True
                 else:
                         dt = t_now - ctx['t_last_enter']
@@ -134,7 +134,7 @@ def trace_unhandled(event_name, perf_context, fields):
 
                 if ctx['depth'] != 1:
                         if not ctx['uncertain_entry_exit']:
-                                sys.stderr.write("Function {} recursive or parallel: called to NOT 1. Cannot compute min, max, stdev\n".format(func))
+                                sys.stderr.write("Function {} recursive or parallel. Cannot compute min, max, stdev\n".format(func))
                                 ctx['uncertain_entry_exit'] = True
 
 def trace_end():
