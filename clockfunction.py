@@ -138,20 +138,20 @@ def trace_unhandled(event_name, perf_context, fields):
                                 ctx['uncertain_entry_exit'] = True
 
 def trace_end():
-        print "# function mean min max stdev Ncalls"
+        print "# function total mean min max stdev Ncalls"
         print "## All timings in seconds"
         for func in sorted(contexts.keys()):
                 ctx = contexts[func]
                 if ctx['depth'] != 0:
                         if not ctx['uncertain_entry_exit']:
                                 sys.stderr.write("Function {} recursive or parallel: entry/exit counts don't balance. Cannot compute anything\n".format(func))
-                        print func,'- - - - -'
+                        print func,'- - - - - -'
                 else:
                         if ctx['uncertain_entry_exit']:
-                                print func, ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits']
+                                print func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits']
                         else:
                                 t = np.array(ctx['latencies'])
-                                print func, np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0]
+                                print func, np.sum(t), np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0]
 
 
 
