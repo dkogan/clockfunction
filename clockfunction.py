@@ -239,7 +239,7 @@ def record_trace(fullcmd):
         probes = get_all_probes()
         probe_args = ["-e{}".format(p) for p in probes]
 
-        probe_args = ('sudo', '-E', perf, 'record', '-o', 'perf.data') + tuple(probe_args) + tuple(fullcmd)
+        probe_args = ('sudo', '-E', perf, 'record', '-o', 'perf.data', '-a') + tuple(probe_args) + tuple(fullcmd)
         call(probe_args, pass_output=True )
         call( ('sudo', 'chmod', 'a+r', "perf.data"))
 
