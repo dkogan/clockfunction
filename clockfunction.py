@@ -207,7 +207,9 @@ def create_probes(funcslibs):
                                 call( ('sudo', perf, 'probe', '-x', lib,
                                        '--no-demangle', '--add', f) )
                                 call( ('sudo', perf, 'probe', '-x', lib,
-                                       '--no-demangle', '--add', "{f}_ret={f}%return".format(f=f)) )
+                                       '--no-demangle', '--add', "{f_nocontext}_ret={f}%return". \
+                                       format(f           = f,
+                                              f_nocontext = re.sub("\.[0-9]+$", "", f))))
                         except:
                                 print ("## WARNING: Couldn't add probe for function '{}' in library '{}'.\n" + \
                                        "## This possibly is OK. Continuing anyway").format(f, lib)
