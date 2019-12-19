@@ -174,17 +174,31 @@ def call( args, must_succeed=True, pass_output=False):
 
 def get_functions_from_pattern(f_pattern, lib):
         try:
-                out = subprocess.check_output( ('sudo', perf, 'probe', '-x', lib, '--no-demangle', '--funcs', f_pattern) )
+                out = subprocess.check_output( ('sudo', perf, 'probe', '-x', lib, '--no-demangle', '--filter', '*', '--funcs', f_pattern) )
         except:
                 raise Exception("Couldn't get the function list!")
 
-        # This is required because older perfs don't do the pattern matching for
-        # me, and instead report ALL the functions
-        l = [f for f in out.splitlines() if     fnmatch.fnmatchcase(f, f_pattern) and \
-                                            not fnmatch.fnmatchcase(f, '*@plt')   and \
-                                            not fnmatch.fnmatchcase(f, '*_omp_fn*') ]
+        def accept(name):
+
+                if not fnmatch.fnmatchcase(name, f_pattern):
+                        return False
+                if fnmatch.fnmatchcase(name, '*@plt'):
+                        return False
+                if fnmatch.fnmatchcase(name, '*_omp_fn*'):
+                        return False
+                return True
+        def name_fname(name):
+                # Apparently fname is limited to 64 characters. I cut down to 50
+                # to leave room for the few more chars I will need
+                fname = "func_" + name
+                if len(fname) > 50:
+                        fname = fname[:50]
+                return name,fname
+
+        l = [name_fname(name) for name in out.splitlines() if accept(name) ]
         if len(l) == 0:
                 raise Exception("Library {} found no functions matching pattern '{}'".format(lib,f_pattern))
+
         return l
 
 def create_probes(funcslibs):
@@ -202,14 +216,12 @@ def create_probes(funcslibs):
                 lib = os.path.expanduser(lib)
                 funcs = get_functions_from_pattern(f_pattern, lib)
                 print "## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, funcs)
-                for f in funcs:
+                for f,fname in funcs:
                         try:
                                 cmd1 = ('sudo', perf, 'probe', '-x', lib,
-                                       '--no-demangle', '--add', f )
+                                       '--no-demangle', '--add', "{}={}".format(fname,f) )
                                 cmd2 = ('sudo', perf, 'probe', '-x', lib,
-                                       '--no-demangle', '--add', "{f_nocontext}_ret={f}%return". \
-                                       format(f           = f,
-                                              f_nocontext = re.sub("\.[0-9]+$", "", f))))
+                                       '--no-demangle', '--add', "{}_ret={}%return".format(fname,f))
                                 call(cmd1)
                                 call(cmd2)
                         except:
