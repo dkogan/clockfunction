@@ -141,7 +141,12 @@ def trace_end():
         print "# function total mean min max stdev Ncalls"
         print "## All timings in seconds"
         for func in sorted(contexts.keys()):
+
                 ctx = contexts[func]
+
+                # strip out the initial "func_"
+                func = func[5:]
+
                 if ctx['depth'] != 0:
                         if not ctx['uncertain_entry_exit']:
                                 sys.stderr.write("Function {} recursive or parallel: entry/exit counts don't balance. Cannot compute anything\n".format(func))
@@ -190,6 +195,10 @@ def get_functions_from_pattern(f_pattern, lib):
         def name_fname(name):
                 # Apparently fname is limited to 64 characters. I cut down to 50
                 # to leave room for the few more chars I will need
+                #
+                # need to prepend "func_" since some symbols start with
+                # illegal characters; I THINK _ as the first character
+                # doesn't work for perf probe names
                 fname = "func_" + name
                 if len(fname) > 50:
                         fname = fname[:50]
