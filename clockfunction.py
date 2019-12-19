@@ -257,7 +257,7 @@ if __name__ == '__main__':
         # to see if 'perf' is running us
         pid      = os.getpid()
         exe_link = os.readlink("/proc/{}/exe".format(pid) )
-        if not re.match( "perf(_.*)?$", os.path.basename( exe_link )):
+        if not re.match( "perf([-_].*)?$", os.path.basename( exe_link )):
 
                 usage = "Usage: {} func@lib [func@lib ...] cmd arg0 arg1 arg2 ...\n".format(sys.argv[0]) + \
                         "\n" + __doc__
