@@ -224,8 +224,8 @@ def create_probes(funcslibs):
         for f_pattern,lib in funcslibs:
                 lib = os.path.expanduser(lib)
                 funcs = get_functions_from_pattern(f_pattern, lib)
-                print "## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, funcs[0])
                 for f,fname in funcs:
+                        print "## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, f)
                         try:
                                 cmd1 = ('sudo', perf, 'probe', '-x', lib,
                                        '--no-demangle', '--add', "{}={}".format(fname,f) )
