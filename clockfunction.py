@@ -303,4 +303,5 @@ if __name__ == '__main__':
 
                 create_probes(funcslibs)
                 record_trace (fullcmd)
+                sys.stdout.flush()
                 analyze_trace(sys.argv[0])
