@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 r"""This is a simple tool to run an application under perf to measure the runtime
 of given functions.
@@ -138,8 +138,8 @@ def trace_unhandled(event_name, perf_context, fields):
                                 ctx['uncertain_entry_exit'] = True
 
 def trace_end():
-        print "# function total mean min max stdev Ncalls"
-        print "## All timings in seconds"
+        print("# function total mean min max stdev Ncalls")
+        print("## All timings in seconds")
         for func in sorted(contexts.keys()):
 
                 ctx = contexts[func]
@@ -150,13 +150,13 @@ def trace_end():
                 if ctx['depth'] != 0:
                         if not ctx['uncertain_entry_exit']:
                                 sys.stderr.write("Function {} recursive or parallel: entry/exit counts don't balance. Cannot compute anything\n".format(func))
-                        print func,'- - - - - -'
+                        print(func,'- - - - - -')
                 else:
                         if ctx['uncertain_entry_exit']:
-                                print func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits']
+                                print(func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits'])
                         else:
                                 t = np.array(ctx['latencies'])
-                                print func, np.sum(t), np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0]
+                                print(func, np.sum(t), np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0])
 
 
 
@@ -169,7 +169,7 @@ def call( args, must_succeed=True, pass_output=False):
                 proc.communicate()
                 stdout,stderr = '',''
         else:
-                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='ascii')
                 stdout,stderr = proc.communicate()
         if must_succeed and proc.returncode != 0:
                 if not re.match('\w', stdout): stdout = ''
@@ -179,7 +179,8 @@ def call( args, must_succeed=True, pass_output=False):
 
 def get_functions_from_pattern(f_pattern, lib):
         try:
-                out = subprocess.check_output( ('sudo', perf, 'probe', '-x', lib, '--no-demangle', '--filter', '*', '--funcs', f_pattern) )
+                out = subprocess.check_output( ('sudo', perf, 'probe', '-x', lib, '--no-demangle', '--filter', '*', '--funcs', f_pattern),
+                                               encoding='ascii')
         except:
                 raise Exception("Couldn't get the function list!")
 
@@ -225,7 +226,7 @@ def create_probes(funcslibs):
                 lib = os.path.expanduser(lib)
                 funcs = get_functions_from_pattern(f_pattern, lib)
                 for f,fname in funcs:
-                        print "## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, f)
+                        print("## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, f))
                         try:
                                 cmd1 = ('sudo', perf, 'probe', '-x', lib,
                                        '--no-demangle', '--add', "{}={}".format(fname,f) )
@@ -288,14 +289,14 @@ if __name__ == '__main__':
                 usage = "Usage: {} func@lib [func@lib ...] cmd arg0 arg1 arg2 ...\n".format(sys.argv[0]) + \
                         "\n" + __doc__
                 if len(sys.argv) < 3:
-                        print usage
+                        print(usage)
                         sys.exit(1)
 
                 # command is the first argument without a single '@'
-                i_arg_cmd = next(i for i in xrange(1,len(sys.argv)) if not re.match('[^@]+@[^@]+$', sys.argv[i]))
+                i_arg_cmd = next(i for i in range(1,len(sys.argv)) if not re.match('[^@]+@[^@]+$', sys.argv[i]))
                 if i_arg_cmd < 2 or i_arg_cmd >= len(sys.argv):
-                        print "No func@lib found in reasonable spot"
-                        print "Usage: " + usage.format(sys.argv[0])
+                        print("No func@lib found in reasonable spot")
+                        print("Usage: " + usage.format(sys.argv[0]))
                         sys.exit(1)
 
                 funcslibs = [arg.split('@') for arg in sys.argv[1:i_arg_cmd]]
