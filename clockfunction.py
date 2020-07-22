@@ -18,8 +18,8 @@ Example:
 
   $ ./clockfunction.py '*rand*'@/usr/bin/perl perl_run@/usr/bin/perl perl -e 'for $i (0..100000) { $s = rand(); }'
 
-  # function mean min max stdev Ncalls
   ## All timings in seconds
+  # function mean min max stdev Ncalls
   Perl_drand48_init_r 7.55896326154e-06 7.55896326154e-06 7.55896326154e-06 0.0               1
   Perl_drand48_r      1.95271501819e-06 1.76404137164e-06 3.67719912902e-05 4.0105865074e-07  100001
   Perl_pp_rand        5.23026800056e-06 4.78199217469e-06 0.000326015986502 1.71576428687e-06 100001
@@ -138,8 +138,8 @@ def trace_unhandled(event_name, perf_context, fields):
                                 ctx['uncertain_entry_exit'] = True
 
 def trace_end():
-        print("# function total mean min max stdev Ncalls")
         print("## All timings in seconds")
+        print("# function total mean min max stdev Ncalls")
         for func in sorted(contexts.keys()):
 
                 ctx = contexts[func]
