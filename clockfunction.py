@@ -235,8 +235,8 @@ def create_probes(funcslibs):
                                 call(cmd1)
                                 call(cmd2)
                         except:
-                                print ("## WARNING: Couldn't add probe for function '{}' in library '{}'.\n" + \
-                                       "## This possibly is OK. Continuing anyway").format(f, lib)
+                                print (f"## WARNING: Couldn't add probe for function '{f}' in library '{lib}'.\n" + \
+                                       "## This possibly is OK. Continuing anyway")
                                 print("## Command1: " + ' '.join(cmd1))
                                 print("## Command2: " + ' '.join(cmd2))
                                 print("##")
