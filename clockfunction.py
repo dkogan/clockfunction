@@ -153,10 +153,10 @@ def trace_end():
                         print(func,'- - - - - -')
                 else:
                         if ctx['uncertain_entry_exit']:
-                                print(func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits'])
+                                print(' '.join([str(x) for x in (func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits'])]))
                         else:
                                 t = np.array(ctx['latencies'])
-                                print(func, np.sum(t), np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0])
+                                print(' '.join([str(x) for x in (func, np.sum(t), np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0])]))
 
 
 
@@ -235,7 +235,7 @@ def create_probes(funcslibs):
                                 call(cmd1)
                                 call(cmd2)
                         except:
-                                print (f"## WARNING: Couldn't add probe for function '{f}' in library '{lib}'.\n" + \
+                                print ("## WARNING: Couldn't add probe for function '{}' in library '{}'.\n".format(f,lib) + \
                                        "## This possibly is OK. Continuing anyway")
                                 print("## Command1: " + ' '.join(cmd1))
                                 print("## Command2: " + ' '.join(cmd2))
