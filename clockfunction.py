@@ -71,7 +71,6 @@ import os.path
 import sys
 import re
 import fnmatch
-import numpy as np
 import subprocess
 
 contexts = {}
@@ -98,7 +97,6 @@ def preamble(event_name, fields):
         else:
                 sys.stderr.write("Couldn't parse event probe name: '{}'. Skipping event\n".format(event_name))
                 return (None,None,None,None)
-
 
 def trace_unhandled(event_name, perf_context, fields):
         # Each probe event is processed here. If recursion or parallelism
@@ -138,6 +136,10 @@ def trace_unhandled(event_name, perf_context, fields):
                                 ctx['uncertain_entry_exit'] = True
 
 def trace_end():
+
+
+        import numpy as np
+
         print("## All timings in seconds")
         print("# function total mean min max stdev Ncalls")
         for func in sorted(contexts.keys()):
