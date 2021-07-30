@@ -72,6 +72,7 @@ import sys
 import re
 import fnmatch
 import subprocess
+import math
 
 contexts = {}
 perf     = "perf"
@@ -137,9 +138,6 @@ def trace_unhandled(event_name, perf_context, fields):
 
 def trace_end():
 
-
-        import numpy as np
-
         print("## All timings in seconds")
         print("# function total mean min max stdev Ncalls")
         for func in sorted(contexts.keys()):
@@ -157,8 +155,17 @@ def trace_end():
                         if ctx['uncertain_entry_exit']:
                                 print(' '.join([str(x) for x in (func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits'])]))
                         else:
-                                t = np.array(ctx['latencies'])
-                                print(' '.join([str(x) for x in (func, np.sum(t), np.mean(t), np.amin(t), np.amax(t), np.std(t), t.shape[0])]))
+                                s = sum(ctx['latencies'])
+                                N = len(ctx['latencies'])
+                                m = s/N
+                                var = sum( [(x-m)*(x-m) for x in ctx['latencies']]) / N
+                                print(' '.join([str(x) for x in (func,
+                                                                 s,
+                                                                 m,
+                                                                 min(ctx['latencies']),
+                                                                 max(ctx['latencies']),
+                                                                 math.sqrt(var),
+                                                                 N)]))
 
 
 
