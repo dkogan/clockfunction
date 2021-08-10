@@ -153,19 +153,24 @@ def trace_end():
                         print(func,'- - - - - -')
                 else:
                         if ctx['uncertain_entry_exit']:
-                                print(' '.join([str(x) for x in (func, ctx['t_sum'], ctx['t_sum']/ctx['N_exits'], '- - -', ctx['N_exits'])]))
+                                print(func + ' ' + \
+                                      ' '.join(['{:.2f}'.format(x) \
+                                                for x in (ctx['t_sum'],
+                                                          ctx['t_sum']/ctx['N_exits'])]) +
+                                      ' - - - ' + str(ctx['N_exits']))
                         else:
                                 s = sum(ctx['latencies'])
                                 N = len(ctx['latencies'])
                                 m = s/N
                                 var = sum( [(x-m)*(x-m) for x in ctx['latencies']]) / N
-                                print(' '.join([str(x) for x in (func,
-                                                                 s,
-                                                                 m,
-                                                                 min(ctx['latencies']),
-                                                                 max(ctx['latencies']),
-                                                                 math.sqrt(var),
-                                                                 N)]))
+                                print(str(func) + ' ' + \
+                                      ' '.join(['{:.2f}'.format(x) \
+                                                for x in (s,
+                                                          m,
+                                                          min(ctx['latencies']),
+                                                          max(ctx['latencies']),
+                                                          math.sqrt(var))]) +
+                                               ' ' + str(N))
 
 
 
