@@ -214,7 +214,9 @@ def get_functions_from_pattern(f_pattern, lib):
                 # need to prepend "func_" since some symbols start with
                 # illegal characters; I THINK _ as the first character
                 # doesn't work for perf probe names
-                fname = "func_" + name
+                #
+                # And I replace . with _, primarily for the .isra functions
+                fname = "func_" + name.replace('.','_')
                 if len(fname) > 50:
                         fname = fname[:50]
                 return name,fname
