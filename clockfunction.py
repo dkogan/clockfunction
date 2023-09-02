@@ -96,7 +96,7 @@ def preamble(event_name, fields):
                 ctx = contexts[func]
                 return ctx, t_now, func, m.group(2) is not None
         else:
-                sys.stderr.write("Couldn't parse event probe name: '{}'. Skipping event\n".format(event_name))
+                sys.stderr.write(f"Couldn't parse event probe name: '{event_name}'. Skipping event\n")
                 return (None,None,None,None)
 
 def trace_unhandled(event_name, perf_context, fields):
@@ -119,7 +119,7 @@ def trace_unhandled(event_name, perf_context, fields):
 
                 if ctx['depth'] != 0:
                         if not ctx['uncertain_entry_exit']:
-                                sys.stderr.write("Function {} recursive or parallel. Cannot compute min, max, stdev\n".format(func))
+                                sys.stderr.write(f"Function {func} recursive or parallel. Cannot compute min, max, stdev\n")
                                 ctx['uncertain_entry_exit'] = True
                 else:
                         dt = t_now - ctx['t_last_enter']
@@ -133,7 +133,7 @@ def trace_unhandled(event_name, perf_context, fields):
 
                 if ctx['depth'] != 1:
                         if not ctx['uncertain_entry_exit']:
-                                sys.stderr.write("Function {} recursive or parallel. Cannot compute min, max, stdev\n".format(func))
+                                sys.stderr.write(f"Function {func} recursive or parallel. Cannot compute min, max, stdev\n")
                                 ctx['uncertain_entry_exit'] = True
 
 def trace_end():
@@ -149,12 +149,12 @@ def trace_end():
 
                 if ctx['depth'] != 0:
                         if not ctx['uncertain_entry_exit']:
-                                sys.stderr.write("Function {} recursive or parallel: entry/exit counts don't balance. Cannot compute anything\n".format(func))
+                                sys.stderr.write(f"Function {func} recursive or parallel: entry/exit counts don't balance. Cannot compute anything\n")
                         print(func,'- - - - - -')
                 else:
                         if ctx['uncertain_entry_exit']:
                                 print(func + ' ' + \
-                                      ' '.join(['{:.2f}'.format(x) \
+                                      ' '.join([f'{x:.2f}' \
                                                 for x in (ctx['t_sum'],
                                                           ctx['t_sum']/ctx['N_exits'])]) +
                                       ' - - - ' + str(ctx['N_exits']))
@@ -164,7 +164,7 @@ def trace_end():
                                 m = s/N
                                 var = sum( [(x-m)*(x-m) for x in ctx['latencies']]) / N
                                 print(str(func) + ' ' + \
-                                      ' '.join(['{:.2f}'.format(x) \
+                                      ' '.join([f'{x:.2f}' \
                                                 for x in (s,
                                                           m,
                                                           min(ctx['latencies']),
@@ -188,7 +188,7 @@ def call( args, must_succeed=True, pass_output=False):
         if must_succeed and proc.returncode != 0:
                 if not re.match('\w', stdout): stdout = ''
                 if not re.match('\w', stderr): stderr = ''
-                raise Exception("Failed when running {}: {}".format(args, stdout + stderr))
+                raise Exception(f"Failed when running {args}: {stdout + stderr}")
         return stdout,stderr
 
 def get_functions_from_pattern(f_pattern, lib):
@@ -223,7 +223,7 @@ def get_functions_from_pattern(f_pattern, lib):
 
         l = [name_fname(name) for name in out.splitlines() if accept(name) ]
         if len(l) == 0:
-                raise Exception("Library {} found no functions matching pattern '{}'".format(lib,f_pattern))
+                raise Exception(f"Library {lib} found no functions matching pattern '{f_pattern}'")
 
         return l
 
@@ -242,16 +242,16 @@ def create_probes(funcslibs):
                 lib = os.path.expanduser(lib)
                 funcs = get_functions_from_pattern(f_pattern, lib)
                 for f,fname in funcs:
-                        print("## pattern: '{}' in lib '{}' found funcs '{}'".format(f_pattern, lib, f))
+                        print(f"## pattern: '{f_pattern}' in lib '{lib}' found funcs '{f}'")
                         try:
                                 cmd1 = ('sudo', perf, 'probe', '-x', lib,
-                                       '--no-demangle', '--add', "{}={}".format(fname,f) )
+                                       '--no-demangle', '--add', f"{fname}={f}" )
                                 cmd2 = ('sudo', perf, 'probe', '-x', lib,
-                                       '--no-demangle', '--add', "{}_ret={}%return".format(fname,f))
+                                       '--no-demangle', '--add', f"{fname}_ret={f}%return")
                                 call(cmd1)
                                 call(cmd2)
                         except:
-                                print ("## WARNING: Couldn't add probe for function '{}' in library '{}'.\n".format(f,lib) + \
+                                print (f"## WARNING: Couldn't add probe for function '{f}' in library '{lib}'.\n" + \
                                        "## This possibly is OK. Continuing anyway")
                                 print("## Command1: " + ' '.join(cmd1))
                                 print("## Command2: " + ' '.join(cmd2))
@@ -282,7 +282,7 @@ def record_trace(fullcmd):
         # with more than one probe per function entry/exit, and I can't know
         # what I ended up with without asking perf
         probes = get_all_probes()
-        probe_args = ["-e{}".format(p) for p in probes]
+        probe_args = [f"-e{p}" for p in probes]
 
         probe_args = ('sudo', '-E', perf, 'record', '-o', 'perf.data', '-a') + tuple(probe_args) + tuple(fullcmd)
         call(probe_args, pass_output=True )
@@ -299,10 +299,10 @@ if __name__ == '__main__':
         # don't want to run any of this in that case. So I check the executable
         # to see if 'perf' is running us
         pid      = os.getpid()
-        exe_link = os.readlink("/proc/{}/exe".format(pid) )
+        exe_link = os.readlink(f"/proc/{pid}/exe" )
         if not re.match( "perf([-_].*)?$", os.path.basename( exe_link )):
 
-                usage = "Usage: {} func@lib [func@lib ...] cmd arg0 arg1 arg2 ...\n".format(sys.argv[0]) + \
+                usage = f"Usage: {sys.argv[0]} func@lib [func@lib ...] cmd arg0 arg1 arg2 ...\n" + \
                         "\n" + __doc__
                 if len(sys.argv) < 3:
                         print(usage)
@@ -312,7 +312,7 @@ if __name__ == '__main__':
                 i_arg_cmd = next(i for i in range(1,len(sys.argv)) if not re.match('[^@]+@[^@]+$', sys.argv[i]))
                 if i_arg_cmd < 2 or i_arg_cmd >= len(sys.argv):
                         print("No func@lib found in reasonable spot")
-                        print("Usage: " + usage.format(sys.argv[0]))
+                        print("Usage: " + usage)
                         sys.exit(1)
 
                 funcslibs = [arg.split('@') for arg in sys.argv[1:i_arg_cmd]]
