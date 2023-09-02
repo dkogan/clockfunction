@@ -113,15 +113,16 @@ def trace_unhandled(event_name, perf_context, fields):
         if ctx is None: return
 
         if is_ret:
-                ctx['t_sum'  ] += t_now
-                ctx['N_exits'] += 1
-                ctx['depth'  ] -= 1
-
-                if ctx['depth'] != 0:
+                if ctx['depth'] == 0:
                         if not ctx['uncertain_entry_exit']:
-                                sys.stderr.write(f"Function {func} recursive or parallel. Cannot compute min, max, stdev\n")
+                                sys.stderr.write(f"Function {func}: returned when depth==0 already. Ignoring this return, and will not complain in the future\n")
                                 ctx['uncertain_entry_exit'] = True
                 else:
+
+                        ctx['t_sum'  ] += t_now
+                        ctx['N_exits'] += 1
+                        ctx['depth'  ] -= 1
+
                         dt = t_now - ctx['t_last_enter']
                         ctx['t_last_enter'] = None
                         ctx['latencies']   += [dt]
